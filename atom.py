@@ -9,6 +9,35 @@ class AtomType(Flag):
 	def __str__(self):
 		return self.name.lower()
 
+def escape(string):
+	new_string = ""
+	index = 0
+	try:
+		while index < len(string):
+			match string[index]:
+				case "\\":
+					index += 1
+					match string[index]:
+						case "n":
+							new_string += "\n"
+						case "t":
+							new_string += "\t"
+						case "b":
+							new_string += "\b"
+						case "r":
+							new_string += "\r"
+						case "f":
+							new_string += "\f"
+						case "x":
+							new_string += chr(int(string[index + 1] + string[index + 2], 16))
+							index += 2
+				case _:
+					new_string += string[index]
+			index += 1
+		return new_string
+	except IndexError:
+		print("Error: Incorrectly escaped string")
+
 class Atom:
 	def __init__(self, data_type, value):
 		self.type = data_type
@@ -29,13 +58,16 @@ class Atom:
 			case AtomType.NUMBER:
 				return "%g" % self.value
 			case AtomType.STRING:
-				return self.value
+				return escape(self.value)
 			case AtomType.SYMBOL:
 				return self.value
 			case AtomType.QUOTE:
 				string = "["
 				for item in self.value:
-					string += str(item) + " "
+					if item.type == AtomType.STRING:
+						string += '"' + str(item) + '" '
+					else:
+						string += str(item) + " "
 				if string[-1] == " ":
 					string = string[ : -1]
 				return string + "]"

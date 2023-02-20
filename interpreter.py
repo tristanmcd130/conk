@@ -14,7 +14,7 @@ class Interpreter:
 	def run(self, code):
 		try:
 			self.evaluate(self.parse(self.lex(code)))
-		except TypeError:
+		except Exception:
 			return
 	def repl(self):
 		while True:
@@ -99,15 +99,15 @@ class Interpreter:
 							self.throw(f"Unknown word {atom}")
 					case _:
 						self.push(atom)
-		except TypeError:
-			raise TypeError
+		except Exception:
+			raise Exception
 	def throw(self, message):
 		print(f"Error: {message}")
 		self.error = True
-		raise TypeError
+		raise Exception
 	def type_check(self, atom, expected_type):
 		types = ["number", "string", "symbol", "quote", "primitive"]
-		if atom.type != expected_type:
+		if atom.type not in expected_type:
 			self.throw(f"Expected a {expected_type}, received a {atom.type}")
 	def add_primitive(self, name, code):
 		self.env_stack[0][name] = Atom(AtomType.QUOTE, [Atom(AtomType.PRIMITIVE, code)])
