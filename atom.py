@@ -34,9 +34,9 @@ def escape(string):
 				case _:
 					new_string += string[index]
 			index += 1
-		return new_string
 	except IndexError:
-		print("Error: Incorrectly escaped string")
+		print(f'Error: Incorrectly escaped string "{string}"')
+	return new_string
 
 class Atom:
 	def __init__(self, data_type, value):
@@ -65,7 +65,7 @@ class Atom:
 				string = "["
 				for item in self.value:
 					if item.type == AtomType.STRING:
-						string += '"' + str(item) + '" '
+						string += '"' + item.value + '" '
 					else:
 						string += str(item) + " "
 				if string[-1] == " ":

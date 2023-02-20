@@ -103,7 +103,6 @@ class Interpreter:
 			raise Exception
 	def throw(self, message):
 		print(f"Error: {message}")
-		self.error = True
 		raise Exception
 	def type_check(self, atom, expected_type):
 		types = ["number", "string", "symbol", "quote", "primitive"]
