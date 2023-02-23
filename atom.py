@@ -34,8 +34,8 @@ def escape(string):
 				case _:
 					new_string += string[index]
 			index += 1
-	except IndexError:
-		print(f'Error: Incorrectly escaped string "{string}"')
+	except (IndexError, ValueError):
+		print(f'Incorrectly escaped string "{string}"')
 	return new_string
 
 class Atom:

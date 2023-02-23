@@ -7,14 +7,19 @@ def is_number(string):
 	except ValueError:
 		return False
 
+class ConkError(Exception):
+	def __init__(self, message):
+		print(f"Error: {message}")
+
 class Interpreter:
 	def __init__(self):
 		self.stack = Atom(AtomType.QUOTE, [])
 		self.env_stack = [{}]
+		self.debug = False
 	def run(self, code):
 		try:
 			self.evaluate(self.parse(self.lex(code)))
-		except Exception:
+		except ConkError:
 			return
 	def repl(self):
 		while True:
@@ -49,6 +54,10 @@ class Interpreter:
 						token += string[index]
 						index += 1
 						tokens.append(token)
+					case "#":
+						while index < len(string) and string[index] != "\n":
+							token += string[index]
+							index += 1
 					case _:
 						while index < len(string) and not (string[index].isspace() or string[index] in '[]"'):
 							token += string[index]
@@ -56,7 +65,7 @@ class Interpreter:
 						tokens.append(token)
 			return tokens
 		except IndexError:
-			self.throw(f"Syntax error in {string}")
+			self.throw(f'Syntax error in "{string}"')
 	def parse(self, tokens):
 		parse_stack = [Atom(AtomType.QUOTE, [])]
 		for token in tokens:
@@ -78,32 +87,33 @@ class Interpreter:
 				return env[name]
 		return None
 	def evaluate(self, tree):
-		try:
-			for atom in tree.value:
-				match atom.type:
-					case AtomType.PRIMITIVE:
-						atom.value(self)
-					case AtomType.SYMBOL:
-						definition = self.find(atom.value)
-						if definition:
-							self.env_stack.append({})
-							self.evaluate(definition)
-							self.env_stack.pop()
-						elif atom.value[0] == ":":
-							self.env_stack[-1][atom.value[1 : ]] = Atom(AtomType.QUOTE, [self.pop()])
-						elif atom.value[0] == "\\":
-							quote = self.pop()
-							self.type_check(quote, AtomType.QUOTE)
-							self.env_stack[-1][atom.value[1 : ]] = quote
-						else:
-							self.throw(f"Unknown word {atom}")
-					case _:
-						self.push(atom)
-		except Exception:
-			raise Exception
+		for atom in tree.value:
+			if self.debug:
+				print(f"Atom: {atom}")
+			match atom.type:
+				case AtomType.PRIMITIVE:
+					atom.value(self)
+				case AtomType.SYMBOL:
+					definition = self.find(atom.value)
+					if definition:
+						self.env_stack.append({})
+						self.evaluate(definition)
+						self.env_stack.pop()
+					elif atom.value[0] == ":":
+						self.env_stack[-1][atom.value[1 : ]] = Atom(AtomType.QUOTE, [self.pop()])
+					elif atom.value[0] == "\\":
+						quote = self.pop()
+						self.type_check(quote, AtomType.QUOTE)
+						self.env_stack[-1][atom.value[1 : ]] = quote
+					else:
+						self.throw(f"Unknown word {atom}")
+				case _:
+					self.push(atom)
+			if self.debug:
+				print(f"Stack: {self.stack}")
+				input()
 	def throw(self, message):
-		print(f"Error: {message}")
-		raise Exception
+		raise ConkError(message)
 	def type_check(self, atom, expected_type):
 		types = ["number", "string", "symbol", "quote", "primitive"]
 		if atom.type not in expected_type:
