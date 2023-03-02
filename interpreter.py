@@ -16,7 +16,7 @@ class Interpreter:
 	def throw(self, message):
 		raise Exception(message)
 	def tokenize(self, string):
-		return [token for token in split(r"([\[\]\s]|\"[^\"]+\")", string) if token and not token.isspace()]
+		return [token for token in split(r"([\[\]\s]|\"[^\"]+\")|#.*", string) if token and not token.isspace()]
 	def is_number(self, string):
 		try:
 			float(string)
