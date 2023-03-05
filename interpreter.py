@@ -10,11 +10,7 @@ class Interpreter:
 	def push(self, value):
 		self.stack.append(value)
 	def pop(self):
-		if not len(self.stack):
-			self.throw("Stack underflow") 
 		return self.stack.pop()
-	def throw(self, message):
-		raise Exception(message)
 	def tokenize(self, string):
 		return [token for token in split(r"([\[\]\s]|\"[^\"]+\")|#.*", string) if token and not token.isspace()]
 	def is_number(self, string):
@@ -42,6 +38,8 @@ class Interpreter:
 		for env in self.env_stack[ : : -1]:
 			if name in env:
 				return env[name]
+	def throw(self, message):
+		raise Exception(message)
 	def evaluate(self, tree):
 		for expr in tree:
 			if callable(expr):
@@ -52,19 +50,19 @@ class Interpreter:
 					self.env_stack.append({})
 					self.evaluate(definition)
 					self.env_stack.pop()
-				elif expr[0] == "/":
+				elif expr[0] == "\\":
 					self.env_stack[-1][expr[1 : ]] = self.pop()
 				elif expr[0] == ":":
 					self.env_stack[-1][expr[1 : ]] = [self.pop()]
 				else:
-					self.throw(f"Unknown word {expr}")
+					self.throw(f"unknown word {expr}")
 			else:
 				self.push(expr)
 	def expr_to_str(self, expr):
 		if type(expr) in [float, int]:
 			return "%g" % expr
 		elif type(expr) == str:
-			return expr.replace("\\n", "\n")
+			return expr.encode("utf-8").decode("unicode_escape")
 		elif type(expr) == Symbol:
 			return expr
 		elif type(expr) == list:
@@ -81,7 +79,7 @@ class Interpreter:
 		try:
 			self.evaluate(self.parse(self.tokenize(code)))
 		except Exception as e:
-			print(f"Error: {str(e).capitalize()}")
+			print(f"Error: {e}")
 	def repl(self):
 		while True:
 			self.run(input("> "))
